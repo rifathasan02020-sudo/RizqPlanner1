@@ -2,8 +2,18 @@ import { GoogleGenAI } from "@google/genai";
 
 let client: GoogleGenAI | null = null;
 
-if (process.env.API_KEY) {
-  client = new GoogleGenAI({ apiKey: process.env.API_KEY });
+try {
+  // Check for API Key safely to avoid "process is not defined" crash
+  // @ts-ignore
+  const apiKey = (typeof process !== 'undefined' && process.env?.API_KEY) 
+    // @ts-ignore
+    || (typeof import.meta !== 'undefined' && import.meta.env?.API_KEY);
+
+  if (apiKey) {
+    client = new GoogleGenAI({ apiKey });
+  }
+} catch (error) {
+  console.warn("Gemini Client Init Failed (AI features will be disabled):", error);
 }
 
 export const getFinancialAdvice = async (
@@ -11,7 +21,7 @@ export const getFinancialAdvice = async (
   financialContext: string
 ): Promise<string> => {
   if (!client) {
-    return "দুঃখিত, এআই পরিষেবা বর্তমানে উপলব্ধ নয়। দয়া করে পরে আবার চেষ্টা করুন বা নিশ্চিত করুন যে API কী কনফিগার করা হয়েছে।";
+    return "দুঃখিত, এআই পরিষেবা বর্তমানে উপলব্ধ নয়। (API Key Missing or Invalid)";
   }
 
   try {
