@@ -174,21 +174,21 @@ const LanguageExchange: React.FC = () => {
            </button>
        </div>
 
-       {/* Converter Boards - Clean Design (Removed Colors) */}
+       {/* Converter Boards - Clean Design (Removed Colors and Inner Boards) */}
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            {/* Input Board */}
            <Card className="flex flex-col h-full">
                <div className="flex justify-between items-center mb-4">
                    <h3 className="font-bold text-slate-300 flex items-center gap-2">
-                       {/* Removed colored dot */}
                        ইনপুট (Input)
                    </h3>
                    <button onClick={handleClear} className="text-slate-500 hover:text-red-400 transition-colors" title="মুছুন">
                        <RefreshCw size={16} />
                    </button>
                </div>
+               {/* Removed inner board styling: bg-transparent, border-none, removed focus effects */}
                <textarea
-                   className="w-full h-32 bg-slate-950/50 border border-slate-700 focus:border-cyan-500 text-white px-4 py-4 outline-none transition-all rounded-xl placeholder-slate-600 resize-none font-sans text-lg leading-relaxed"
+                   className="w-full h-32 bg-transparent border-none text-white px-0 py-2 outline-none resize-none font-sans text-lg leading-relaxed placeholder-slate-600 focus:ring-0"
                    placeholder={mode === 'bn2en' ? "এখানে বাংলা লিখুন... (যেমন: আমি ভাত খাই)" : "Type here in Banglish... (e.g., ami vat khai)"}
                    value={input}
                    onChange={e => setInput(e.target.value)}
@@ -203,7 +203,6 @@ const LanguageExchange: React.FC = () => {
            <Card className="flex flex-col h-full">
                <div className="flex justify-between items-center mb-4">
                    <h3 className="font-bold text-slate-300 flex items-center gap-2">
-                       {/* Removed colored dot */}
                        আউটপুট (Output)
                    </h3>
                    <button 
@@ -216,7 +215,8 @@ const LanguageExchange: React.FC = () => {
                        {copied ? 'কপি হয়েছে' : 'কপি করুন'}
                    </button>
                </div>
-               <div className="w-full h-32 bg-black/20 border border-white/5 rounded-xl px-4 py-4 overflow-y-auto">
+               {/* Removed inner board styling: bg-transparent, border-none */}
+               <div className="w-full h-32 bg-transparent border-none px-0 py-2 overflow-y-auto">
                    {output ? (
                        <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">{output}</p>
                    ) : (

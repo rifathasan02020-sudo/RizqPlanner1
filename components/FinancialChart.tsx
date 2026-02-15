@@ -62,8 +62,8 @@ const FinancialChart: React.FC<FinancialChartProps> = ({ income, expense, saving
             bottomRight: 2
         },
         borderWidth: 0,
-        barPercentage: 0.5,
-        categoryPercentage: 0.8,
+        barPercentage: 0.8, // Increased for thicker bars
+        categoryPercentage: 0.9, // Increased to reduce gap between bars
         // Disable hover changes to keep it clean
         hoverBackgroundColor: (context: any) => {
              const ctx = context.chart.ctx;
