@@ -33,10 +33,10 @@ const Notes: React.FC<NotesProps> = ({ notes, onAdd, onDelete }) => {
            </div>
        </div>
 
-       {/* Add Note Section */}
-       <Card className="border-t-4 border-t-cyan-500">
+       {/* Add Note Section - Clean Design (Removed Color Border) */}
+       <Card className="">
            <form onSubmit={handleSubmit} className="space-y-4">
-               <div className="flex items-center gap-2 mb-2 text-cyan-400">
+               <div className="flex items-center gap-2 mb-2 text-slate-300">
                    <PenLine size={20} />
                    <h3 className="font-semibold">নতুন নোট তৈরি করুন</h3>
                </div>

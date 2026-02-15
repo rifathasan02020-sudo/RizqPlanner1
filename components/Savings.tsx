@@ -74,9 +74,9 @@ const Savings: React.FC<SavingsProps> = ({ savings, onAdd, onDelete }) => {
         </Card>
       </div>
 
-      {/* Premium Input Board */}
-      <Card className="border-t-4 border-t-cyan-500">
-          <div className="flex items-center gap-2 mb-6 text-cyan-400">
+      {/* Premium Input Board - Clean Design (Removed Color Effects) */}
+      <Card className="">
+          <div className="flex items-center gap-2 mb-6 text-slate-300">
              <Plus size={20} />
              <h3 className="font-semibold text-lg">নতুন সঞ্চয় জমা করুন</h3>
           </div>
@@ -119,17 +119,19 @@ const Savings: React.FC<SavingsProps> = ({ savings, onAdd, onDelete }) => {
                </div>
           ) : (
               [...savings].reverse().map(item => (
-                  <Card key={item.id} className="flex justify-between items-center p-5 hover:bg-slate-800/40 transition-all group border-l-4 border-l-transparent hover:border-l-cyan-500">
-                      <div className="flex items-center gap-4">
-                          <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-500">
+                  <Card key={item.id} className="flex flex-nowrap justify-between items-center p-5 hover:bg-slate-800/40 transition-all group border-l-4 border-l-transparent hover:border-l-cyan-500 overflow-hidden">
+                      <div className="flex items-center gap-4 flex-nowrap min-w-0">
+                          <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-500 shrink-0">
                              <Wallet size={20} />
                           </div>
-                          <div>
-                              <p className="font-bold text-white text-lg leading-tight">{item.description}</p>
+                          <div className="min-w-0">
+                              {/* Added whitespace-nowrap and truncate to keep on one line */}
+                              <p className="font-bold text-white text-lg leading-tight whitespace-nowrap truncate">{item.description}</p>
                           </div>
                       </div>
-                      <div className="flex items-center gap-5">
-                          <span className="text-xl font-bold text-cyan-400">
+                      <div className="flex items-center gap-5 shrink-0 ml-4">
+                          {/* Ensure amount is on one line */}
+                          <span className="text-xl font-bold text-cyan-400 whitespace-nowrap">
                               + ৳ {item.amount.toLocaleString()}
                           </span>
                           <button 

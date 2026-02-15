@@ -89,21 +89,23 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, onDelete }) =
              </div>
          ) : (
              [...filteredTransactions].reverse().map(txn => (
-                 <Card key={txn.id} className="flex justify-between items-center p-4 hover:bg-slate-800/40 transition-all group border-l-4 border-l-transparent hover:border-l-cyan-500">
-                     <div className="flex items-start gap-4">
-                         <div className={`p-3 rounded-xl ${txn.type === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                 <Card key={txn.id} className="flex flex-nowrap justify-between items-center p-4 hover:bg-slate-800/40 transition-all group border-l-4 border-l-transparent hover:border-l-cyan-500 overflow-hidden">
+                     <div className="flex items-center gap-4 min-w-0 flex-1">
+                         <div className={`p-3 rounded-xl shrink-0 ${txn.type === 'income' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
                             {txn.type === 'income' ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
                          </div>
-                         <div>
-                             <p className="font-bold text-white text-lg leading-tight mb-1">{txn.category}</p>
-                             <div className="flex items-center gap-2 text-xs text-slate-500">
+                         
+                         {/* Text Wrapper: Description Top, Date Bottom, Left Aligned */}
+                         <div className="flex flex-col items-start gap-1 min-w-0 flex-1">
+                             <p className="font-bold text-white text-lg leading-tight truncate w-full text-left">{txn.category}</p>
+                             <div className="flex items-center gap-2 text-xs text-slate-500 shrink-0">
                                <Calendar size={12} />
-                               {/* Changed to English Date Format */}
                                <span>{new Date(txn.date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                              </div>
                          </div>
                      </div>
-                     <div className="flex items-center gap-4">
+                     
+                     <div className="flex items-center gap-4 ml-2 shrink-0">
                          <span className={`text-lg font-bold whitespace-nowrap ${txn.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
                              {txn.type === 'income' ? '+' : '-'} ৳ {txn.amount.toLocaleString()}
                          </span>

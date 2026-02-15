@@ -174,13 +174,13 @@ const LanguageExchange: React.FC = () => {
            </button>
        </div>
 
-       {/* Converter Boards */}
+       {/* Converter Boards - Clean Design (Removed Colors) */}
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
            {/* Input Board */}
-           <Card className="flex flex-col h-full border-t-4 border-t-cyan-500">
+           <Card className="flex flex-col h-full">
                <div className="flex justify-between items-center mb-4">
                    <h3 className="font-bold text-slate-300 flex items-center gap-2">
-                       <span className="w-2 h-2 rounded-full bg-cyan-500"></span>
+                       {/* Removed colored dot */}
                        ইনপুট (Input)
                    </h3>
                    <button onClick={handleClear} className="text-slate-500 hover:text-red-400 transition-colors" title="মুছুন">
@@ -200,10 +200,10 @@ const LanguageExchange: React.FC = () => {
            </Card>
 
            {/* Output Board */}
-           <Card className="flex flex-col h-full border-t-4 border-t-emerald-500 bg-slate-800/40">
+           <Card className="flex flex-col h-full">
                <div className="flex justify-between items-center mb-4">
                    <h3 className="font-bold text-slate-300 flex items-center gap-2">
-                       <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                       {/* Removed colored dot */}
                        আউটপুট (Output)
                    </h3>
                    <button 
