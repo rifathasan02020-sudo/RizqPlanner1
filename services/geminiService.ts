@@ -4,15 +4,29 @@ export const getFinancialAdvice = async (
   query: string,
   financialContext: string
 ): Promise<string> => {
-  // Access key securely
-  const apiKey = process.env.API_KEY;
+  // 1. Try process.env (injected via vite define)
+  let apiKey = process.env.API_KEY;
+
+  // 2. Fallback: Try standard Vite env vars (import.meta.env)
+  // This handles cases where Vercel exposes VITE_API_KEY directly
+  if (!apiKey) {
+    try {
+      // @ts-ignore
+      if (typeof import.meta !== 'undefined' && import.meta.env) {
+        // @ts-ignore
+        apiKey = import.meta.env.VITE_API_KEY || import.meta.env.API_KEY;
+      }
+    } catch (e) {
+      console.warn("Error accessing import.meta.env", e);
+    }
+  }
 
   if (!apiKey) {
-    return "দুঃখিত, এআই পরিষেবা ব্যবহারের জন্য API Key প্রয়োজন। Vercel এ 'API_KEY' এনভায়রনমেন্ট ভেরিয়েবল সেট করা আছে কিনা যাচাই করুন।";
+    return "দুঃখিত, এআই পরিষেবা ব্যবহারের জন্য API Key পাওয়া যায়নি। অনুগ্রহ করে Vercel এর Settings > Environment Variables এ 'VITE_API_KEY' নামে আপনার Gemini API Key টি সেভ করুন এবং রি-ডিপ্লয় (Redeploy) করুন।";
   }
 
   try {
-    // Initialize client ONLY when needed to prevent startup crashes
+    // Initialize client ONLY when needed using the retrieved key
     const ai = new GoogleGenAI({ apiKey });
     
     const model = 'gemini-3-flash-preview';
@@ -36,6 +50,6 @@ export const getFinancialAdvice = async (
     return response.text || "দুঃখিত, আমি উত্তরটি তৈরি করতে পারিনি।";
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "দুঃখিত, একটি ত্রুটি ঘটেছে। দয়া করে আবার চেষ্টা করুন।";
+    return "দুঃখিত, একটি ত্রুটি ঘটেছে। সম্ভবত API Key টি সঠিক নয় বা কোটা শেষ হয়ে গেছে।";
   }
 };
