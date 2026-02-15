@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Note } from '../types';
+import { Note } from '../services/types';
 import Card from './Card';
 import Button from './Button';
 import Input from './Input';

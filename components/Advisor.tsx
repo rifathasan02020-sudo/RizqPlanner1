@@ -3,7 +3,7 @@ import Card from './Card';
 import Button from './Button';
 import { getFinancialAdvice } from '../services/geminiService';
 import { Bot, Loader2, Sparkles, MessageSquare } from 'lucide-react';
-import { Transaction } from '../types';
+import { Transaction } from '../services/types';
 
 interface AdvisorProps {
   transactions: Transaction[];

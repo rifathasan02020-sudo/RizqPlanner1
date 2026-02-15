@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { SavingsEntry } from '../types';
+import { SavingsEntry } from '../services/types';
 import Card from './Card';
 import Input from './Input';
 import Button from './Button';

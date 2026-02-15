@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Transaction } from '../types';
+import { Transaction } from '../services/types';
 import Card from './Card';
 import { ArrowUpCircle, ArrowDownCircle, CreditCard, Trash2, Calendar, FileText } from 'lucide-react';
 

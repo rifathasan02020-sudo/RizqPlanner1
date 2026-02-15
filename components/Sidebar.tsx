@@ -1,5 +1,5 @@
 import React from 'react';
-import { ViewType } from '../types';
+import { ViewType } from '../services/types';
 import { LayoutDashboard, StickyNote, Wallet, PiggyBank, GraduationCap, Settings, X, Calculator, Languages } from 'lucide-react';
 
 interface SidebarProps {

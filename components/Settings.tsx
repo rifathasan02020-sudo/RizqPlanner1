@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { User } from '../types';
+import { User } from '../services/types';
 import { getAvatar } from '../constants';
 import Card from './Card';
 import Input from './Input';

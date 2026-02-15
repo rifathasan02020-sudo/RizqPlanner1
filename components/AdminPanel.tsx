@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import Card from './Card';
-import { User, Transaction, SavingsEntry } from '../types';
+import { User, Transaction, SavingsEntry } from '../services/types';
 import { Users, Database, ShieldAlert, Loader2 } from 'lucide-react';
 
 interface AdminProfile {

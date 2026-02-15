@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User } from '../types';
+import { User } from '../services/types';
 import { APP_NAME_PREFIX, APP_NAME_SUFFIX, getAvatar } from '../constants';
 import Button from './Button';
 import Input from './Input';

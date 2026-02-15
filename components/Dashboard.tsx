@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { User, Transaction, TransactionType, SavingsEntry } from '../types';
+import { User, Transaction, TransactionType, SavingsEntry } from '../services/types';
 import { getAvatar, QUOTES } from '../constants';
 import Card from './Card';
 import Input from './Input';

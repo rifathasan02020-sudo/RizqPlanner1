@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Transaction, Note, SavingsEntry, ViewType } from './types';
+import { User, Transaction, Note, SavingsEntry, ViewType } from './services/types';
 import Landing from './components/Landing';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
@@ -41,7 +41,7 @@ const App: React.FC = () => {
          const metaName = session.user.user_metadata?.name;
          const metaAvatar = session.user.user_metadata?.avatar_url;
 
-         // Use profile data, falling back to metadata if necessary
+         // Use profile data, falling back to metadata or default
          setUser({
             id: session.user.id,
             email: session.user.email!,
