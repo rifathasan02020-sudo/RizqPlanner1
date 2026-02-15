@@ -1,12 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 export const getFinancialAdvice = async (
   query: string,
   financialContext: string
 ): Promise<string> => {
+  // Access key securely
+  const apiKey = process.env.API_KEY;
+
+  if (!apiKey) {
+    return "দুঃখিত, এআই পরিষেবা ব্যবহারের জন্য API Key প্রয়োজন। Vercel এ 'API_KEY' এনভায়রনমেন্ট ভেরিয়েবল সেট করা আছে কিনা যাচাই করুন।";
+  }
+
   try {
+    // Initialize client ONLY when needed to prevent startup crashes
+    const ai = new GoogleGenAI({ apiKey });
+    
     const model = 'gemini-3-flash-preview';
     const prompt = `
       You are an expert financial advisor named "Rizq Advisor". 
