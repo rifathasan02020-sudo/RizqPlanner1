@@ -29,7 +29,10 @@ export const getFinancialAdvice = async (
     // Initialize client ONLY when needed using the retrieved key
     const ai = new GoogleGenAI({ apiKey });
     
-    const model = 'gemini-3-flash-preview';
+    // Switch to 'gemini-flash-lite-latest' for maximum speed
+    // This model is optimized for low latency and quick responses
+    const model = 'gemini-flash-lite-latest';
+    
     const prompt = `
       You are an expert financial advisor named "Rizq Advisor". 
       Answer the user's question in Bengali (Bangla).
