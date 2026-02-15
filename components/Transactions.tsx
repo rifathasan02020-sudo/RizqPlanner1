@@ -104,7 +104,7 @@ const Transactions: React.FC<TransactionsProps> = ({ transactions, onDelete }) =
                          </div>
                      </div>
                      <div className="flex items-center gap-4">
-                         <span className={`text-lg font-bold ${txn.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
+                         <span className={`text-lg font-bold whitespace-nowrap ${txn.type === 'income' ? 'text-emerald-400' : 'text-red-400'}`}>
                              {txn.type === 'income' ? '+' : '-'} ৳ {txn.amount.toLocaleString()}
                          </span>
                          <button 

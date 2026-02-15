@@ -188,7 +188,7 @@ const LanguageExchange: React.FC = () => {
                    </button>
                </div>
                <textarea
-                   className="w-full h-64 bg-slate-950/50 border border-slate-700 focus:border-cyan-500 text-white px-4 py-4 outline-none transition-all rounded-xl placeholder-slate-600 resize-none font-sans text-lg leading-relaxed"
+                   className="w-full h-32 bg-slate-950/50 border border-slate-700 focus:border-cyan-500 text-white px-4 py-4 outline-none transition-all rounded-xl placeholder-slate-600 resize-none font-sans text-lg leading-relaxed"
                    placeholder={mode === 'bn2en' ? "এখানে বাংলা লিখুন... (যেমন: আমি ভাত খাই)" : "Type here in Banglish... (e.g., ami vat khai)"}
                    value={input}
                    onChange={e => setInput(e.target.value)}
@@ -216,7 +216,7 @@ const LanguageExchange: React.FC = () => {
                        {copied ? 'কপি হয়েছে' : 'কপি করুন'}
                    </button>
                </div>
-               <div className="w-full h-64 bg-black/20 border border-white/5 rounded-xl px-4 py-4 overflow-y-auto">
+               <div className="w-full h-32 bg-black/20 border border-white/5 rounded-xl px-4 py-4 overflow-y-auto">
                    {output ? (
                        <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">{output}</p>
                    ) : (
