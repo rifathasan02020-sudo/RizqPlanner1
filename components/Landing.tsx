@@ -10,7 +10,7 @@ import {
   ShieldCheck, 
   PieChart, 
   Globe, 
-  Calculator, 
+  Calculator as CalcIcon, 
   GraduationCap, 
   Loader2, 
   AlertCircle,
@@ -68,7 +68,6 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         });
       }
     } catch (err: any) {
-      // Avoid [object object] by getting the message correctly
       setLoginError(err.message || String(err) || 'ইমেইল বা পাসওয়ার্ড ভুল।');
     } finally {
       setLoading(false);
@@ -89,7 +88,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
-        password,
+        password: password,
         options: {
           data: {
             name: name,
@@ -117,7 +116,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
     { icon: <PieChart className="text-cyan-400" size={20} />, title: "স্মার্ট ট্র্যাকিং", desc: "আয়-ব্যয় সহজে হিসাব।" },
     { icon: <GraduationCap className="text-blue-400" size={20} />, title: "AI পরামর্শ", desc: "সঠিক আর্থিক দিকনির্দেশনা।" },
     { icon: <TrendingUp className="text-emerald-400" size={20} />, title: "সঞ্চয় প্ল্যান", desc: "ভবিষ্যতের জন্য সঞ্চয়।" },
-    { icon: <Calculator className="text-purple-400" size={20} />, title: "ক্যালকুলেটর", desc: "অ্যাডভান্সড হিসাব ব্যবস্থা।" },
+    { icon: <CalcIcon className="text-purple-400" size={20} />, title: "ক্যালকুলেটর", desc: "অ্যাডভান্সড হিসাব ব্যবস্থা।" },
     { icon: <Globe className="text-pink-400" size={20} />, title: "ভাষা এক্সচেঞ্জ", desc: "বাংলা ও বাংলিশ কনভার্টার।" },
     { icon: <Lock className="text-orange-400" size={20} />, title: "নিরাপদ ডাটা", desc: "ক্লাউড সুরক্ষার নিশ্চয়তা।" }
   ];
@@ -138,34 +137,34 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
               </div>
 
               {isLogin ? (
-                <form onSubmit={handleLogin} className="space-y-5">
+                <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
                   <Input 
                     label="ইমেইল" 
                     placeholder="example@mail.com" 
                     value={loginEmail} 
-                    onChange={e => setLoginEmail(e.target.value)} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginEmail(e.target.value)} 
                     type="email" 
-                    autoComplete="email"
+                    required
                   />
                   <Input 
                     label="পাসওয়ার্ড" 
                     placeholder="******" 
                     value={loginPass} 
-                    onChange={e => setLoginPass(e.target.value)} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginPass(e.target.value)} 
                     type="password" 
-                    autoComplete="current-password"
+                    required
                   />
-                  {loginError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-2"><AlertCircle size={16} />{loginError}</div>}
+                  {loginError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2"><AlertCircle size={16} className="shrink-0 mt-0.5" /><span>{loginError}</span></div>}
                   <Button fullWidth type="submit" disabled={loading} className="py-4">
                     {loading ? <Loader2 className="animate-spin mx-auto" /> : "প্রবেশ করুন"}
                   </Button>
                 </form>
               ) : (
-                <form onSubmit={handleSignup} className="space-y-4">
-                  <Input label="নাম" placeholder="আপনার পূর্ণ নাম" value={name} onChange={e => setName(e.target.value)} autoComplete="name" />
-                  <Input label="ইমেইল" placeholder="example@mail.com" value={email} onChange={e => setEmail(e.target.value)} type="email" autoComplete="email" />
-                  <Input label="পাসওয়ার্ড" placeholder="কমপক্ষে ৬ অক্ষর" value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="new-password" />
-                  {signupError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-2"><AlertCircle size={16} />{signupError}</div>}
+                <form onSubmit={handleSignup} className="space-y-4" autoComplete="off">
+                  <Input label="নাম" placeholder="আপনার পূর্ণ নাম" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)} />
+                  <Input label="ইমেইল" placeholder="example@mail.com" value={email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} type="email" />
+                  <Input label="পাসওয়ার্ড" placeholder="কমপক্ষে ৬ অক্ষর" value={password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} type="password" autoComplete="new-password" />
+                  {signupError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2"><AlertCircle size={16} className="shrink-0 mt-0.5" /><span>{signupError}</span></div>}
                   {signupSuccess && <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">{signupSuccess}</div>}
                   <Button fullWidth type="submit" disabled={loading} className="py-4">
                     {loading ? <Loader2 className="animate-spin mx-auto" /> : "অ্যাকাউন্ট তৈরি করুন"}

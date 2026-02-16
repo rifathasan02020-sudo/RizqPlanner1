@@ -20,7 +20,9 @@ const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
-  const [loading, setLoading] = useState(true);
+  
+  // Set loading to false by default so nothing is "spinning" at the start
+  const [loading, setLoading] = useState(false);
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -28,7 +30,6 @@ const App: React.FC = () => {
 
   const fetchUserData = async (userId: string) => {
     try {
-      // Fetching with a timeout or safer handling
       const [profileRes, txnsRes, notesRes, savingsRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
         supabase.from('transactions').select('*').eq('user_id', userId),
@@ -49,24 +50,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      try {
-        // Reduced waiting time for session check to prevent hanging UI
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-           const profile = await fetchUserData(session.user.id);
-           setUser({
-              id: session.user.id,
-              email: session.user.email!,
-              name: profile?.name || session.user.user_metadata?.name || 'User',
-              avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
-              password: profile?.saved_password || '' 
-           });
-        }
-      } catch (e) {
-        console.error("Auth check failed:", e);
-      } finally {
-        // ALWAYS set loading to false to avoid infinite spinning
-        setLoading(false);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+         const profile = await fetchUserData(session.user.id);
+         setUser({
+            id: session.user.id,
+            email: session.user.email!,
+            name: profile?.name || session.user.user_metadata?.name || 'User',
+            avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
+            password: profile?.saved_password || '' 
+         });
       }
     };
 
@@ -97,20 +90,14 @@ const App: React.FC = () => {
   const handleLogin = (loggedInUser: User) => setUser(loggedInUser);
   
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setCurrentView('dashboard');
-    } catch (error) {
-      console.error("Logout failed", error);
-      setUser(null);
-    }
+    await supabase.auth.signOut();
+    setUser(null);
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
     if (!user) return;
     try {
-        const { error } = await supabase.from('profiles').upsert({
+        await supabase.from('profiles').upsert({
              id: user.id,
              name: updatedUser.name,
              avatar_url: updatedUser.avatarUrl,
@@ -118,13 +105,9 @@ const App: React.FC = () => {
              email: user.email,
              updated_at: new Date().toISOString()
         });
-
-        if (error) throw error;
         setUser(updatedUser);
-    } catch (error: any) { 
+    } catch (error) { 
         console.error("Update failed:", error); 
-        alert("তথ্য আপডেট করা যায়নি।");
-        throw error;
     }
   };
 
@@ -175,13 +158,6 @@ const App: React.FC = () => {
     await supabase.from('savings').delete().eq('id', id);
   };
 
-  // If we are still checking the session, we show the landing background instead of a blocking spinner
-  if (loading) return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
-    </div>
-  );
-  
   if (!user) return <Landing onLogin={handleLogin} />;
 
   const isAdmin = user.email === 'admin@rizq.com' || user.email.includes('rifat');

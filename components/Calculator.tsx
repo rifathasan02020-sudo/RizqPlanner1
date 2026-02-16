@@ -113,38 +113,38 @@ const Calculator: React.FC = () => {
     setIsFinalResult(false);
   };
 
-  const btnBase = "relative flex items-center justify-center text-3xl font-bold transition-all duration-100 active:scale-90 active:opacity-70 select-none overflow-hidden rounded-3xl h-20 md:h-24 lg:h-28";
-  const numBtn = `${btnBase} bg-slate-900/40 backdrop-blur-md text-white border border-white/5 hover:bg-slate-800/60 shadow-inner`;
+  const btnBase = "relative flex items-center justify-center text-4xl font-bold transition-all duration-100 active:scale-90 active:opacity-70 select-none overflow-hidden rounded-[2.5rem] h-20 md:h-28";
+  const numBtn = `${btnBase} bg-slate-900/50 backdrop-blur-md text-white border border-white/5 hover:bg-slate-800/60 shadow-inner`;
   const opBtn = `${btnBase} bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20`;
   const actionBtn = `${btnBase} bg-slate-800/60 text-slate-400 border border-white/10 hover:bg-slate-700/60`;
   const equalBtn = `${btnBase} bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-xl shadow-cyan-500/20 border-none`;
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[85vh] animate-fade-in-up px-2 pb-24">
-      <div className="w-full bg-[#020617] rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(6,182,212,0.1)] overflow-hidden p-6 md:p-10 relative">
+      <div className="w-full bg-[#020617] rounded-[3.5rem] border border-white/10 shadow-[0_0_100px_rgba(6,182,212,0.1)] overflow-hidden p-8 md:p-12 relative">
         
         {/* Glow Effects */}
         <div className="absolute -top-32 -left-32 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none"></div>
         <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
         {/* Display Panel */}
-        <div className="h-44 md:h-52 flex flex-col justify-end items-end mb-8 px-4 border-b border-white/5 pb-6">
-          <div className="w-full overflow-x-auto no-scrollbar text-right mb-2">
-            <span className="text-slate-500 font-medium text-lg md:text-2xl whitespace-nowrap tracking-wide">
+        <div className="h-44 md:h-56 flex flex-col justify-end items-end mb-10 px-4 border-b border-white/5 pb-8">
+          <div className="w-full overflow-x-auto no-scrollbar text-right mb-4">
+            <span className="text-slate-500 font-medium text-xl md:text-3xl whitespace-nowrap tracking-wide">
               {expression || ' '}
             </span>
           </div>
           <div className="w-full overflow-x-auto no-scrollbar text-right">
-            <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter whitespace-nowrap leading-none py-2 transition-all">
+            <h1 className="text-6xl md:text-9xl font-black text-white tracking-tighter whitespace-nowrap leading-none py-2 transition-all">
               {current ? formatNumber(current) : (isFinalResult ? '' : '0')}
             </h1>
           </div>
         </div>
 
         {/* Keypad */}
-        <div className="grid grid-cols-4 gap-4 md:gap-6">
-          <button onClick={clearAll} className={actionBtn + " text-red-500 text-xl md:text-3xl uppercase"}>AC</button>
-          <button onClick={deleteLast} className={actionBtn}><Delete size={32}/></button>
+        <div className="grid grid-cols-4 gap-5 md:gap-7">
+          <button onClick={clearAll} className={actionBtn + " text-red-500 text-2xl md:text-4xl uppercase"}>AC</button>
+          <button onClick={deleteLast} className={actionBtn}><Delete size={36}/></button>
           <button onClick={() => chooseOperation('%')} className={actionBtn}>%</button>
           <button onClick={() => chooseOperation('÷')} className={opBtn}>÷</button>
 
@@ -170,8 +170,8 @@ const Calculator: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-8 flex items-center gap-3 text-slate-500 text-sm md:text-base font-bold tracking-widest bg-white/5 px-8 py-4 rounded-full border border-white/5 uppercase">
-        <Info size={16} className="text-cyan-500" />
+      <div className="mt-10 flex items-center gap-4 text-slate-500 text-sm md:text-lg font-bold tracking-widest bg-white/5 px-10 py-5 rounded-full border border-white/5 uppercase">
+        <Info size={20} className="text-cyan-500" />
         <span>স্মার্ট চেইন ক্যালকুলেশন সক্রিয়</span>
       </div>
     </div>
