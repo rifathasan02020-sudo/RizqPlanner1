@@ -12,8 +12,8 @@ export const getFinancialAdvice = async (
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    // Using gemini-3-flash-preview for the fastest possible response
-    const model = 'gemini-3-flash-preview';
+    // Using gemini-flash-lite-latest for the fastest possible response
+    const model = 'gemini-flash-lite-latest';
     
     const prompt = `
       You are an expert financial advisor named "Rizq Advisor". 

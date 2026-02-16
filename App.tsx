@@ -61,15 +61,14 @@ const App: React.FC = () => {
       } catch (e) {
         console.error("Auth check failed:", e);
       } finally {
-        // Delay to ensure the screen doesn't flicker too fast
-        setTimeout(() => setLoading(false), 500);
+        setLoading(false);
       }
     };
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-        if (!session) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
           setUser(null);
           setTransactions([]);
           setNotes([]);
@@ -92,21 +91,40 @@ const App: React.FC = () => {
   const handleLogin = (loggedInUser: User) => setUser(loggedInUser);
   
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setCurrentView('dashboard');
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setCurrentView('dashboard');
+    } catch (error) {
+      console.error("Logout failed", error);
+      // Force local logout even if API fails
+      setUser(null);
+      setCurrentView('dashboard');
+    }
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
     if (!user) return;
-    setUser(updatedUser);
+    
     try {
+        // Update Supabase Profiles Table
         await supabase.from('profiles').update({
              name: updatedUser.name,
              avatar_url: updatedUser.avatarUrl,
              saved_password: updatedUser.password 
           }).eq('id', user.id);
-    } catch (error) { console.error(error); }
+
+        // If password was changed, update Supabase Auth Password
+        if (updatedUser.password && updatedUser.password !== user.password) {
+            const { error: pwdError } = await supabase.auth.updateUser({ password: updatedUser.password });
+            if (pwdError) throw pwdError;
+        }
+        
+        setUser(updatedUser);
+    } catch (error: any) { 
+        console.error("Update failed:", error); 
+        alert("তথ্য আপডেট করতে সমস্যা হয়েছে: " + (error.message || "Unknown Error"));
+    }
   };
 
   const handleAddTransaction = async (newTxn: Transaction) => {
@@ -161,7 +179,7 @@ const App: React.FC = () => {
 
   if (loading) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <Loader2 className="animate-spin text-cyan-500 w-10 h-10 opacity-50" />
+      <Loader2 className="animate-spin text-cyan-500 w-12 h-12" />
     </div>
   );
   

@@ -55,7 +55,7 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
       const rawResponse = await getFinancialAdvice(question, context);
       setResponse(cleanResponse(rawResponse));
     } catch (err) {
-      console.error(err);
+      console.error("Advisor Error:", err);
       setResponse("একটি ত্রুটি ঘটেছে। দয়া করে ইন্টারনেট কানেকশন চেক করে আবার চেষ্টা করুন।");
     } finally {
       setIsLoading(false);

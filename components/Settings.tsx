@@ -5,7 +5,7 @@ import { getAvatar } from '../constants';
 import Card from './Card';
 import Input from './Input';
 import Button from './Button';
-import { Camera, LogOut, Upload, Mail } from 'lucide-react';
+import { Camera, LogOut, Upload, Mail, Loader2 } from 'lucide-react';
 
 const SettingsIcon = ({ size, className }: { size: number, className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -16,7 +16,7 @@ const SettingsIcon = ({ size, className }: { size: number, className?: string })
 
 interface SettingsProps {
   user: User;
-  onUpdateUser: (updatedUser: User) => void;
+  onUpdateUser: (updatedUser: User) => Promise<void>;
   onLogout: () => void;
 }
 
@@ -24,6 +24,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
   const [name, setName] = useState(user.name);
   const [password, setPassword] = useState(user.password || '');
   const [avatar, setAvatar] = useState(user.avatarUrl || getAvatar());
+  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,10 +46,15 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateUser({ ...user, name, password, avatarUrl: avatar });
-    alert('প্রোফাইল সফলভাবে আপডেট করা হয়েছে!');
+    setIsSaving(true);
+    try {
+        await onUpdateUser({ ...user, name, password, avatarUrl: avatar });
+        alert('প্রোফাইল সফলভাবে আপডেট করা হয়েছে!');
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   return (
@@ -76,7 +82,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
 
             <div className="grid grid-cols-1 gap-5">
                <Input label="নাম (Name)" value={name} onChange={e => setName(e.target.value)} />
-               <Input label="পাসওয়ার্ড (Password)" type="text" value={password} onChange={e => setPassword(e.target.value)} />
+               <Input label="পাসওয়ার্ড (Password)" type="text" value={password} onChange={e => setPassword(e.target.value)} placeholder="নতুন পাসওয়ার্ড" />
             </div>
 
             <div className="pt-4 border-t border-white/5 opacity-70">
@@ -85,7 +91,9 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
             </div>
 
             <div className="pt-6">
-              <Button type="submit" fullWidth>তথ্য আপডেট করুন</Button>
+              <Button type="submit" fullWidth disabled={isSaving}>
+                 {isSaving ? <Loader2 className="animate-spin mx-auto" /> : "তথ্য আপডেট করুন"}
+              </Button>
             </div>
          </form>
        </Card>
