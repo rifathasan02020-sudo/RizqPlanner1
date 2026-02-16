@@ -25,6 +25,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
   const [password, setPassword] = useState(user.password || '');
   const [avatar, setAvatar] = useState(user.avatarUrl || getAvatar());
   const [isSaving, setIsSaving] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -35,12 +36,50 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
     }
   }, [user]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Image compression function to speed up saving
+  const compressImage = (base64Str: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Str;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 200; // Small size for fast uploads
+        const MAX_HEIGHT = 200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        // Use JPEG with 0.7 quality for excellent compression
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsCompressing(true);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        if (reader.result) setAvatar(reader.result as string);
+      reader.onloadend = async () => {
+        if (reader.result) {
+          const compressed = await compressImage(reader.result as string);
+          setAvatar(compressed);
+          setIsCompressing(false);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -48,10 +87,14 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSaving || isCompressing) return;
+    
     setIsSaving(true);
     try {
         await onUpdateUser({ ...user, name, password, avatarUrl: avatar });
         alert('প্রোফাইল সফলভাবে আপডেট করা হয়েছে!');
+    } catch (err) {
+        console.error(err);
     } finally {
         setIsSaving(false);
     }
@@ -67,14 +110,30 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
        <Card className="border-t-4 border-t-cyan-500">
          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="flex flex-col items-center mb-10">
-               <div className="relative group cursor-pointer w-32 h-32 rounded-3xl overflow-hidden border-4 border-cyan-500/20 shadow-xl bg-slate-800" onClick={() => fileInputRef.current?.click()}>
-                  <img src={avatar} alt="Profile" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[2px]">
-                    <Camera className="text-white mb-1" size={24} />
-                    <span className="text-white text-xs font-medium">ছবি পরিবর্তন</span>
-                  </div>
+               <div 
+                 className="relative group cursor-pointer w-32 h-32 rounded-3xl overflow-hidden border-4 border-cyan-500/20 shadow-xl bg-slate-800" 
+                 onClick={() => !isCompressing && fileInputRef.current?.click()}
+               >
+                  {isCompressing ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                      <Loader2 className="animate-spin text-cyan-500" size={32} />
+                    </div>
+                  ) : (
+                    <>
+                      <img src={avatar} alt="Profile" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[2px]">
+                        <Camera className="text-white mb-1" size={24} />
+                        <span className="text-white text-xs font-medium">ছবি পরিবর্তন</span>
+                      </div>
+                    </>
+                  )}
                </div>
-               <button type="button" onClick={() => fileInputRef.current?.click()} className="mt-5 flex items-center gap-2 px-6 py-2 rounded-full border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-colors text-sm font-medium">
+               <button 
+                 type="button" 
+                 disabled={isCompressing}
+                 onClick={() => fileInputRef.current?.click()} 
+                 className="mt-5 flex items-center gap-2 px-6 py-2 rounded-full border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-colors text-sm font-medium disabled:opacity-50"
+               >
                  <Upload size={16} />ছবি আপলোড করুন
                </button>
                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
@@ -91,7 +150,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
             </div>
 
             <div className="pt-6">
-              <Button type="submit" fullWidth disabled={isSaving}>
+              <Button type="submit" fullWidth disabled={isSaving || isCompressing}>
                  {isSaving ? <Loader2 className="animate-spin mx-auto" /> : "তথ্য আপডেট করুন"}
               </Button>
             </div>

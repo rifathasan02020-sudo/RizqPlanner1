@@ -97,7 +97,6 @@ const App: React.FC = () => {
       setCurrentView('dashboard');
     } catch (error) {
       console.error("Logout failed", error);
-      // Force local logout even if API fails
       setUser(null);
       setCurrentView('dashboard');
     }
@@ -107,19 +106,24 @@ const App: React.FC = () => {
     if (!user) return;
     
     try {
-        // Update Supabase Profiles Table
-        await supabase.from('profiles').update({
+        // Speed Optimization: Run both updates in parallel using Promise.all
+        const updates = [];
+        
+        // 1. Update Profile in DB (Faster because of compressed image)
+        updates.push(
+          supabase.from('profiles').update({
              name: updatedUser.name,
              avatar_url: updatedUser.avatarUrl,
              saved_password: updatedUser.password 
-          }).eq('id', user.id);
+          }).eq('id', user.id)
+        );
 
-        // If password was changed, update Supabase Auth Password
+        // 2. Update Supabase Auth Password if changed
         if (updatedUser.password && updatedUser.password !== user.password) {
-            const { error: pwdError } = await supabase.auth.updateUser({ password: updatedUser.password });
-            if (pwdError) throw pwdError;
+            updates.push(supabase.auth.updateUser({ password: updatedUser.password }));
         }
         
+        await Promise.all(updates);
         setUser(updatedUser);
     } catch (error: any) { 
         console.error("Update failed:", error); 
