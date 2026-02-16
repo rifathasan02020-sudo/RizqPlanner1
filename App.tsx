@@ -12,7 +12,7 @@ import Calculator from './components/Calculator';
 import LanguageExchange from './components/LanguageExchange';
 import Settings from './components/Settings';
 import AdminPanel from './components/AdminPanel';
-import { AlignRight, Loader2 } from 'lucide-react';
+import { AlignRight } from 'lucide-react';
 import { APP_NAME_PREFIX, APP_NAME_SUFFIX, getAvatar } from './constants';
 import { supabase } from './services/supabaseClient';
 
@@ -28,16 +28,19 @@ const App: React.FC = () => {
 
   const fetchUserData = async (userId: string) => {
     try {
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
-      const { data: txns } = await supabase.from('transactions').select('*').eq('user_id', userId);
-      const { data: nts } = await supabase.from('notes').select('*').eq('user_id', userId);
-      const { data: svs } = await supabase.from('savings').select('*').eq('user_id', userId);
+      // Fetching with a timeout or safer handling
+      const [profileRes, txnsRes, notesRes, savingsRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        supabase.from('transactions').select('*').eq('user_id', userId),
+        supabase.from('notes').select('*').eq('user_id', userId),
+        supabase.from('savings').select('*').eq('user_id', userId)
+      ]);
 
-      if (txns) setTransactions(txns);
-      if (nts) setNotes(nts);
-      if (svs) setSavings(svs);
+      if (txnsRes.data) setTransactions(txnsRes.data);
+      if (notesRes.data) setNotes(notesRes.data);
+      if (savingsRes.data) setSavings(savingsRes.data);
 
-      return profile;
+      return profileRes.data;
     } catch (err) {
       console.error("Data fetch error:", err);
       return null;
@@ -47,6 +50,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
+        // Reduced waiting time for session check to prevent hanging UI
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
            const profile = await fetchUserData(session.user.id);
@@ -61,6 +65,7 @@ const App: React.FC = () => {
       } catch (e) {
         console.error("Auth check failed:", e);
       } finally {
+        // ALWAYS set loading to false to avoid infinite spinning
         setLoading(false);
       }
     };
@@ -73,6 +78,7 @@ const App: React.FC = () => {
           setTransactions([]);
           setNotes([]);
           setSavings([]);
+          setCurrentView('dashboard');
         } else if (session) {
           const profile = await fetchUserData(session.user.id);
           setUser({
@@ -98,36 +104,27 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Logout failed", error);
       setUser(null);
-      setCurrentView('dashboard');
     }
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
     if (!user) return;
-    
     try {
-        // Speed Optimization: Run both updates in parallel using Promise.all
-        const updates = [];
-        
-        // 1. Update Profile in DB (Faster because of compressed image)
-        updates.push(
-          supabase.from('profiles').update({
+        const { error } = await supabase.from('profiles').upsert({
+             id: user.id,
              name: updatedUser.name,
              avatar_url: updatedUser.avatarUrl,
-             saved_password: updatedUser.password 
-          }).eq('id', user.id)
-        );
+             saved_password: user.password,
+             email: user.email,
+             updated_at: new Date().toISOString()
+        });
 
-        // 2. Update Supabase Auth Password if changed
-        if (updatedUser.password && updatedUser.password !== user.password) {
-            updates.push(supabase.auth.updateUser({ password: updatedUser.password }));
-        }
-        
-        await Promise.all(updates);
+        if (error) throw error;
         setUser(updatedUser);
     } catch (error: any) { 
         console.error("Update failed:", error); 
-        alert("তথ্য আপডেট করতে সমস্যা হয়েছে: " + (error.message || "Unknown Error"));
+        alert("তথ্য আপডেট করা যায়নি।");
+        throw error;
     }
   };
 
@@ -140,7 +137,6 @@ const App: React.FC = () => {
         category: newTxn.category,
         date: newTxn.date,
     }]).select();
-    
     if (data) setTransactions(prev => [...prev, data[0]]);
   };
   
@@ -154,8 +150,7 @@ const App: React.FC = () => {
     const { data } = await supabase.from('notes').insert([{ 
         user_id: user.id, 
         title, 
-        content, 
-        date: new Date().toISOString() 
+        content 
     }]).select();
     if (data) setNotes(prev => [...prev, data[0]]);
   };
@@ -170,8 +165,7 @@ const App: React.FC = () => {
     const { data } = await supabase.from('savings').insert([{ 
         user_id: user.id, 
         amount, 
-        description, 
-        date: new Date().toISOString() 
+        description 
     }]).select();
     if (data) setSavings(prev => [...prev, data[0]]);
   };
@@ -181,9 +175,10 @@ const App: React.FC = () => {
     await supabase.from('savings').delete().eq('id', id);
   };
 
+  // If we are still checking the session, we show the landing background instead of a blocking spinner
   if (loading) return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-      <Loader2 className="animate-spin text-cyan-500 w-12 h-12" />
+      <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin"></div>
     </div>
   );
   

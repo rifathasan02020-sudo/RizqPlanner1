@@ -40,30 +40,19 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
     setActiveQuestion(question);
 
     try {
-      // Prepare context
       const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
       const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
       const balance = totalIncome - totalExpense;
       
-      const context = `
-        Total Income: ${totalIncome}
-        Total Expense: ${totalExpense}
-        Current Balance: ${balance}
-        Recent Transactions count: ${transactions.length}
-      `;
-
+      const context = `Total Income: ${totalIncome}, Total Expense: ${totalExpense}, Balance: ${balance}`;
       const rawResponse = await getFinancialAdvice(question, context);
       setResponse(cleanResponse(rawResponse));
     } catch (err) {
-      console.error("Advisor Error:", err);
-      setResponse("একটি ত্রুটি ঘটেছে। দয়া করে ইন্টারনেট কানেকশন চেক করে আবার চেষ্টা করুন।");
+      console.error(err);
+      setResponse("একটি ত্রুটি ঘটেছে। দয়া করে আবার চেষ্টা করুন।");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleGeneralAdvice = () => {
-    handleAsk("আমার বর্তমান আর্থিক অবস্থা বিবেচনা করে একটি সংক্ষিপ্ত এবং কার্যকরী পরামর্শ দিন।");
   };
 
   return (
@@ -80,14 +69,9 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
                  <Bot size={48} className="text-cyan-400" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">স্বাগতম রিজক অ্যাডভাইজরে</h3>
-              <p className="text-slate-400 max-w-md mb-6 px-4">
-                নিচের প্রশ্নগুলো থেকে বাছাই করুন অথবা সাধারণ পরামর্শের জন্য নিচের বাটনে ক্লিক করুন।
-              </p>
-              <Button onClick={handleGeneralAdvice} className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={20} />
-                  <span>আমার আর্থিক বিশ্লেষণ দেখুন</span>
-                </div>
+              <Button onClick={() => handleAsk("আমার আর্থিক অবস্থা বিশ্লেষণ করে পরামর্শ দিন।")} className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500">
+                <Sparkles size={20} className="inline mr-2" />
+                আমার আর্থিক বিশ্লেষণ দেখুন
               </Button>
             </Card>
          )}
@@ -95,51 +79,32 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
          {isLoading && (
             <Card className="flex flex-col items-center justify-center py-16 text-center border-cyan-500/20 bg-slate-900/40">
                <Loader2 size={48} className="animate-spin text-cyan-400 mb-4" />
-               <p className="text-slate-300 font-medium text-lg">আপনার তথ্যের ভিত্তিতে সেরা পরামর্শটি তৈরি করা হচ্ছে...</p>
-               <p className="text-slate-500 text-sm mt-2">অল্প কিছুক্ষণ অপেক্ষা করুন</p>
+               <p className="text-slate-300 font-medium">আপনার পরামর্শ তৈরি হচ্ছে...</p>
             </Card>
          )}
 
          {response && !isLoading && (
            <Card className="border-cyan-500/30 bg-slate-900/60 relative overflow-hidden animate-fade-in">
-              <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-blue-600"></div>
-              <div className="mb-4 flex items-center gap-3">
-                 <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <Sparkles size={24} className="text-cyan-400" />
-                 </div>
-                 <h3 className="text-xl font-bold text-white">রিজক অ্যাডভাইস</h3>
-              </div>
-              
-              <div className="text-slate-200 text-lg leading-relaxed whitespace-pre-line font-light p-2">
-                 {response}
-              </div>
-
+              <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500"></div>
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Sparkles size={20} className="text-cyan-400" />
+                রিজক অ্যাডভাইস
+              </h3>
+              <div className="text-slate-200 text-lg leading-relaxed whitespace-pre-line">{response}</div>
               <div className="mt-8 flex justify-end">
-                <Button variant="secondary" onClick={() => setResponse(null)} className="text-sm">
-                   অন্য প্রশ্ন জিজ্ঞাসা করুন
-                </Button>
+                <Button variant="secondary" onClick={() => setResponse(null)} className="text-sm">অন্য প্রশ্ন জিজ্ঞাসা করুন</Button>
               </div>
            </Card>
          )}
        </div>
 
        {!isLoading && !response && (
-         <div className="animate-fade-in">
-            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-               <MessageSquare size={20} className="text-slate-400" />
-               সাধারণ জিজ্ঞাসা
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {COMMON_QUESTIONS.map((q, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleAsk(q)}
-                  className="p-4 rounded-xl bg-slate-800/40 border border-white/5 hover:bg-slate-800 hover:border-cyan-500/30 text-left transition-all duration-300 group active:scale-95"
-                >
-                  <span className="text-slate-300 group-hover:text-cyan-300 text-sm font-medium">{q}</span>
-                </button>
-              ))}
-            </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+           {COMMON_QUESTIONS.map((q, idx) => (
+             <button key={idx} onClick={() => handleAsk(q)} className="p-4 rounded-xl bg-slate-800/40 border border-white/5 hover:border-cyan-500/30 text-left text-slate-300 hover:text-white transition-all active:scale-95">
+               {q}
+             </button>
+           ))}
          </div>
        )}
     </div>

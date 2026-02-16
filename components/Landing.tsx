@@ -46,7 +46,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
+        email: loginEmail.trim(),
         password: loginPass,
       });
 
@@ -68,7 +68,8 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         });
       }
     } catch (err: any) {
-      setLoginError(err.message || 'ইমেইল বা পাসওয়ার্ড ভুল।');
+      // Avoid [object object] by getting the message correctly
+      setLoginError(err.message || String(err) || 'ইমেইল বা পাসওয়ার্ড ভুল।');
     } finally {
       setLoading(false);
     }
@@ -87,7 +88,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: {
           data: {
@@ -106,7 +107,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         setName(''); setEmail(''); setPassword('');
       }
     } catch (err: any) {
-      setSignupError(err.message || 'অ্যাকাউন্ট তৈরি করা যায়নি।');
+      setSignupError(err.message || String(err) || 'অ্যাকাউন্ট তৈরি করা যায়নি।');
     } finally {
       setLoading(false);
     }
@@ -138,8 +139,22 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
 
               {isLogin ? (
                 <form onSubmit={handleLogin} className="space-y-5">
-                  <Input label="ইমেইল" placeholder="example@mail.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} type="email" />
-                  <Input label="পাসওয়ার্ড" placeholder="******" value={loginPass} onChange={e => setLoginPass(e.target.value)} type="password" />
+                  <Input 
+                    label="ইমেইল" 
+                    placeholder="example@mail.com" 
+                    value={loginEmail} 
+                    onChange={e => setLoginEmail(e.target.value)} 
+                    type="email" 
+                    autoComplete="email"
+                  />
+                  <Input 
+                    label="পাসওয়ার্ড" 
+                    placeholder="******" 
+                    value={loginPass} 
+                    onChange={e => setLoginPass(e.target.value)} 
+                    type="password" 
+                    autoComplete="current-password"
+                  />
                   {loginError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-2"><AlertCircle size={16} />{loginError}</div>}
                   <Button fullWidth type="submit" disabled={loading} className="py-4">
                     {loading ? <Loader2 className="animate-spin mx-auto" /> : "প্রবেশ করুন"}
@@ -147,9 +162,9 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
                 </form>
               ) : (
                 <form onSubmit={handleSignup} className="space-y-4">
-                  <Input label="নাম" placeholder="আপনার পূর্ণ নাম" value={name} onChange={e => setName(e.target.value)} />
-                  <Input label="ইমেইল" placeholder="example@mail.com" value={email} onChange={e => setEmail(e.target.value)} type="email" />
-                  <Input label="পাসওয়ার্ড" placeholder="কমপক্ষে ৬ অক্ষর" value={password} onChange={e => setPassword(e.target.value)} type="password" />
+                  <Input label="নাম" placeholder="আপনার পূর্ণ নাম" value={name} onChange={e => setName(e.target.value)} autoComplete="name" />
+                  <Input label="ইমেইল" placeholder="example@mail.com" value={email} onChange={e => setEmail(e.target.value)} type="email" autoComplete="email" />
+                  <Input label="পাসওয়ার্ড" placeholder="কমপক্ষে ৬ অক্ষর" value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="new-password" />
                   {signupError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex gap-2"><AlertCircle size={16} />{signupError}</div>}
                   {signupSuccess && <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">{signupSuccess}</div>}
                   <Button fullWidth type="submit" disabled={loading} className="py-4">
@@ -180,7 +195,6 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
             </p>
         </div>
         
-        {/* Smaller, Tighter Features Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-4xl animate-fade-in-up mb-12">
            {features.map((f, i) => (
              <Card key={i} className="text-left border-white/5 bg-slate-900/40 hover:bg-slate-900/60 transition-colors p-3 rounded-xl border border-white/10 shadow-sm">
@@ -191,7 +205,6 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
            ))}
         </div>
 
-        {/* Start Button Repositioned BELOW Cards */}
         <div className="animate-fade-in-up">
           <button 
             onClick={() => setShowAuth(true)} 
@@ -204,7 +217,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         <div className="mt-20 pb-10 border-t border-white/5 w-full pt-10 text-slate-600">
            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2"><ShieldCheck className="text-cyan-900/40" size={16} /><span className="text-[10px]">নিরাপদ এবং এনক্রিপ্টেড ডাটা</span></div>
-              <div className="text-[10px]">© 2024 RizqPlanner. All rights reserved.</div>
+              <div className="text-[10px]">© 2026 RizqPlanner. All rights reserved.</div>
               <div className="flex items-center gap-4"><Zap className="text-yellow-900/40" size={14} /><span className="text-[10px] font-medium">Powered by Gemini AI</span></div>
            </div>
         </div>

@@ -12,9 +12,10 @@ const Calculator: React.FC = () => {
   const formatNumber = (num: string) => {
     if (!num) return '';
     if (num === 'Error') return 'Error';
-    const [integer, decimal] = num.split('.');
-    const formattedInteger = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return decimal !== undefined ? `${formattedInteger}.${decimal}` : formattedInteger;
+    if (num === '.') return '.';
+    const parts = num.split('.');
+    const formattedInteger = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return parts.length > 1 ? `${formattedInteger}.${parts[1]}` : formattedInteger;
   };
 
   const calculate = (a: string, b: string, op: string): string => {
@@ -36,10 +37,7 @@ const Calculator: React.FC = () => {
     }
 
     const resultStr = res.toString();
-    if (resultStr.includes('.') && resultStr.length > 12) {
-       return parseFloat(res.toFixed(8)).toString();
-    }
-    return resultStr;
+    return resultStr.length > 15 ? res.toPrecision(10).toString() : resultStr;
   };
 
   const appendNumber = (num: string) => {
@@ -50,9 +48,7 @@ const Calculator: React.FC = () => {
       return;
     }
     if (num === '.' && current.includes('.')) return;
-    
-    // Limits
-    if (current.length > 12) return;
+    if (current.length > 14) return;
 
     setCurrent(current + num);
     setExpression(expression + num);
@@ -68,13 +64,13 @@ const Calculator: React.FC = () => {
       return;
     }
 
-    if (current === '') {
-      if (expression !== '') {
-        setOperation(op);
-        setExpression(expression.trim().slice(0, -1) + op + ' ');
-      }
+    if (current === '' && prevValue !== null) {
+      setOperation(op);
+      setExpression(expression.trim().split(' ').slice(0, -1).join(' ') + ' ' + op + ' ');
       return;
     }
+
+    if (current === '') return;
 
     if (prevValue !== null && operation !== null) {
       const result = calculate(prevValue, current, operation);
@@ -117,35 +113,38 @@ const Calculator: React.FC = () => {
     setIsFinalResult(false);
   };
 
-  const btnBase = "relative flex items-center justify-center text-2xl font-semibold transition-all duration-100 active:scale-90 active:opacity-70 select-none overflow-hidden rounded-[1.5rem]";
-  const numBtn = `${btnBase} bg-[#1e293b]/40 backdrop-blur-md text-white border border-white/5 hover:bg-[#1e293b]/60`;
-  const opBtn = `${btnBase} bg-cyan-600/20 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-600/30`;
-  const actionBtn = `${btnBase} bg-slate-800/40 text-slate-400 border border-white/5 hover:bg-slate-800/60`;
-  const equalBtn = `${btnBase} bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 border-none`;
+  const btnBase = "relative flex items-center justify-center text-3xl font-bold transition-all duration-100 active:scale-90 active:opacity-70 select-none overflow-hidden rounded-3xl h-20 md:h-24 lg:h-28";
+  const numBtn = `${btnBase} bg-slate-900/40 backdrop-blur-md text-white border border-white/5 hover:bg-slate-800/60 shadow-inner`;
+  const opBtn = `${btnBase} bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20`;
+  const actionBtn = `${btnBase} bg-slate-800/60 text-slate-400 border border-white/10 hover:bg-slate-700/60`;
+  const equalBtn = `${btnBase} bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-xl shadow-cyan-500/20 border-none`;
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center min-h-[80vh] animate-fade-in-up px-2 pb-24">
-      <div className="w-full bg-[#020617] rounded-[2.5rem] border border-white/10 shadow-[0_0_50px_rgba(6,182,212,0.1)] overflow-hidden p-6 relative">
+    <div className="w-full max-w-2xl mx-auto flex flex-col items-center justify-center min-h-[85vh] animate-fade-in-up px-2 pb-24">
+      <div className="w-full bg-[#020617] rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(6,182,212,0.1)] overflow-hidden p-6 md:p-10 relative">
         
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-cyan-500/10 blur-[60px] rounded-full pointer-events-none"></div>
-        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-blue-500/10 blur-[60px] rounded-full pointer-events-none"></div>
+        {/* Glow Effects */}
+        <div className="absolute -top-32 -left-32 w-64 h-64 bg-cyan-500/10 blur-[100px] rounded-full pointer-events-none"></div>
+        <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none"></div>
 
-        <div className="h-44 flex flex-col justify-end items-end mb-6 px-4">
-          <div className="w-full overflow-x-auto no-scrollbar text-right mb-1">
-            <span className="text-slate-500 font-medium text-lg whitespace-nowrap">
+        {/* Display Panel */}
+        <div className="h-44 md:h-52 flex flex-col justify-end items-end mb-8 px-4 border-b border-white/5 pb-6">
+          <div className="w-full overflow-x-auto no-scrollbar text-right mb-2">
+            <span className="text-slate-500 font-medium text-lg md:text-2xl whitespace-nowrap tracking-wide">
               {expression || ' '}
             </span>
           </div>
           <div className="w-full overflow-x-auto no-scrollbar text-right">
-            <h1 className="text-5xl md:text-6xl font-bold text-white tracking-tighter whitespace-nowrap leading-none py-2 transition-all">
+            <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter whitespace-nowrap leading-none py-2 transition-all">
               {current ? formatNumber(current) : (isFinalResult ? '' : '0')}
             </h1>
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-3 md:gap-4">
-          <button onClick={clearAll} className={actionBtn + " text-red-400 font-bold"}>AC</button>
-          <button onClick={deleteLast} className={actionBtn}><Delete size={22}/></button>
+        {/* Keypad */}
+        <div className="grid grid-cols-4 gap-4 md:gap-6">
+          <button onClick={clearAll} className={actionBtn + " text-red-500 text-xl md:text-3xl uppercase"}>AC</button>
+          <button onClick={deleteLast} className={actionBtn}><Delete size={32}/></button>
           <button onClick={() => chooseOperation('%')} className={actionBtn}>%</button>
           <button onClick={() => chooseOperation('÷')} className={opBtn}>÷</button>
 
@@ -164,16 +163,16 @@ const Calculator: React.FC = () => {
           <button onClick={() => appendNumber('3')} className={numBtn}>3</button>
           <button onClick={() => chooseOperation('+')} className={opBtn}>+</button>
 
-          <button onClick={() => appendNumber('0')} className={numBtn + " col-span-1"}>0</button>
+          <button onClick={() => appendNumber('0')} className={numBtn}>0</button>
           <button onClick={() => appendNumber('00')} className={numBtn}>00</button>
           <button onClick={() => appendNumber('.')} className={numBtn}>.</button>
           <button onClick={compute} className={equalBtn}>=</button>
         </div>
       </div>
 
-      <div className="mt-8 flex items-center gap-2 text-slate-600 text-xs font-medium bg-white/5 px-4 py-2 rounded-full border border-white/5">
-        <Info size={12} />
-        <span>রিয়েল-টাইম সিকোয়েন্স ডিসপ্লে সক্রিয়</span>
+      <div className="mt-8 flex items-center gap-3 text-slate-500 text-sm md:text-base font-bold tracking-widest bg-white/5 px-8 py-4 rounded-full border border-white/5 uppercase">
+        <Info size={16} className="text-cyan-500" />
+        <span>স্মার্ট চেইন ক্যালকুলেশন সক্রিয়</span>
       </div>
     </div>
   );

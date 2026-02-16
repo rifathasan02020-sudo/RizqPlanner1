@@ -5,7 +5,7 @@ import { getAvatar } from '../constants';
 import Card from './Card';
 import Input from './Input';
 import Button from './Button';
-import { Camera, LogOut, Upload, Mail, Loader2 } from 'lucide-react';
+import { Camera, LogOut, Upload, Mail, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const SettingsIcon = ({ size, className }: { size: number, className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -23,9 +23,9 @@ interface SettingsProps {
 const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => {
   const [name, setName] = useState(user.name);
   const [password, setPassword] = useState(user.password || '');
+  const [showPassword, setShowPassword] = useState(false);
   const [avatar, setAvatar] = useState(user.avatarUrl || getAvatar());
   const [isSaving, setIsSaving] = useState(false);
-  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -36,49 +36,55 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
     }
   }, [user]);
 
-  // Image compression function to speed up saving
+  // Fast background compression
   const compressImage = (base64Str: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = base64Str;
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 200; // Small size for fast uploads
-        const MAX_HEIGHT = 200;
+        const MAX_DIMENSION = 120;
         let width = img.width;
         let height = img.height;
 
         if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
+          if (width > MAX_DIMENSION) {
+            height *= MAX_DIMENSION / width;
+            width = MAX_DIMENSION;
           }
         } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
+          if (height > MAX_DIMENSION) {
+            width *= MAX_DIMENSION / height;
+            height = MAX_DIMENSION;
           }
         }
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
-        // Use JPEG with 0.7 quality for excellent compression
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
+        resolve(canvas.toDataURL('image/jpeg', 0.5));
       };
+      img.onerror = () => resolve(base64Str);
     });
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setIsCompressing(true);
       const reader = new FileReader();
       reader.onloadend = async () => {
         if (reader.result) {
-          const compressed = await compressImage(reader.result as string);
-          setAvatar(compressed);
-          setIsCompressing(false);
+          const rawBase64 = reader.result as string;
+          // INSTANT PREVIEW: Update state immediately
+          setAvatar(rawBase64);
+          
+          // Silently compress in background
+          try {
+            const compressed = await compressImage(rawBase64);
+            setAvatar(compressed);
+          } catch (err) {
+            console.error("Compression failed:", err);
+          }
         }
       };
       reader.readAsDataURL(file);
@@ -87,14 +93,15 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSaving || isCompressing) return;
+    if (isSaving) return;
     
     setIsSaving(true);
     try {
-        await onUpdateUser({ ...user, name, password, avatarUrl: avatar });
-        alert('প্রোফাইল সফলভাবে আপডেট করা হয়েছে!');
+        await onUpdateUser({ ...user, name, avatarUrl: avatar });
+        alert('আপনার প্রোফাইল সফলভাবে আপডেট হয়েছে!');
     } catch (err) {
-        console.error(err);
+        console.error("Save Error:", err);
+        alert('তথ্য সেভ করতে সমস্যা হয়েছে।');
     } finally {
         setIsSaving(false);
     }
@@ -107,59 +114,87 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
          <h2 className="text-2xl font-bold text-white">সেটিংস</h2>
        </div>
 
-       <Card className="border-t-4 border-t-cyan-500">
-         <form onSubmit={handleSubmit} className="space-y-6">
+       <Card className="border-t-4 border-t-cyan-500 bg-slate-900/60 shadow-2xl relative overflow-hidden">
+         <div className="absolute top-0 right-0 p-4 opacity-5">
+            <SettingsIcon size={120} />
+         </div>
+
+         <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
             <div className="flex flex-col items-center mb-10">
                <div 
-                 className="relative group cursor-pointer w-32 h-32 rounded-3xl overflow-hidden border-4 border-cyan-500/20 shadow-xl bg-slate-800" 
-                 onClick={() => !isCompressing && fileInputRef.current?.click()}
+                 className="relative group cursor-pointer w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-cyan-500/20 shadow-2xl bg-slate-800 transition-transform hover:scale-105 active:scale-95" 
+                 onClick={() => !isSaving && fileInputRef.current?.click()}
                >
-                  {isCompressing ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                      <Loader2 className="animate-spin text-cyan-500" size={32} />
+                  <img src={avatar} alt="Profile" className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" />
+                  
+                  {isSaving && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                      <Loader2 className="animate-spin text-cyan-500" size={40} />
                     </div>
-                  ) : (
-                    <>
-                      <img src={avatar} alt="Profile" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[2px]">
-                        <Camera className="text-white mb-1" size={24} />
-                        <span className="text-white text-xs font-medium">ছবি পরিবর্তন</span>
-                      </div>
-                    </>
                   )}
+
+                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all backdrop-blur-[3px]">
+                    <Camera className="text-white mb-2" size={32} />
+                    <span className="text-white text-[11px] font-black uppercase tracking-[0.2em]">ছবি পরিবর্তন</span>
+                  </div>
                </div>
                <button 
                  type="button" 
-                 disabled={isCompressing}
+                 disabled={isSaving}
                  onClick={() => fileInputRef.current?.click()} 
-                 className="mt-5 flex items-center gap-2 px-6 py-2 rounded-full border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 transition-colors text-sm font-medium disabled:opacity-50"
+                 className="mt-6 flex items-center gap-2 px-8 py-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all text-xs font-black uppercase tracking-widest disabled:opacity-50"
                >
-                 <Upload size={16} />ছবি আপলোড করুন
+                 <Upload size={16} /> ছবি আপলোড করুন
                </button>
                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
             </div>
 
-            <div className="grid grid-cols-1 gap-5">
-               <Input label="নাম (Name)" value={name} onChange={e => setName(e.target.value)} />
-               <Input label="পাসওয়ার্ড (Password)" type="text" value={password} onChange={e => setPassword(e.target.value)} placeholder="নতুন পাসওয়ার্ড" />
+            <div className="grid grid-cols-1 gap-6">
+               <Input label="আপনার নাম (Your Full Name)" value={name} onChange={e => setName(e.target.value)} placeholder="নাম লিখুন" />
+               
+               <div className="relative">
+                  <Input 
+                    label="পাসওয়ার্ড (Password - Read Only)" 
+                    type={showPassword ? "text" : "password"} 
+                    value={password} 
+                    readOnly 
+                    className="pr-12 bg-black/40 border-slate-800 text-slate-500 cursor-default"
+                    placeholder="পাসওয়ার্ড" 
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-[38px] text-slate-600 hover:text-cyan-400 transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                  </button>
+                  <div className="mt-2 flex items-center gap-2 text-slate-600 italic">
+                     <span className="text-[10px] uppercase font-bold tracking-widest bg-white/5 px-2 py-0.5 rounded">Security Alert</span>
+                     <p className="text-[10px]">নিরাপত্তার কারণে এখান থেকে পাসওয়ার্ড পরিবর্তন করা যাবে না।</p>
+                  </div>
+               </div>
             </div>
 
-            <div className="pt-4 border-t border-white/5 opacity-70">
-               <label className="block text-slate-400 text-sm mb-2 font-medium flex items-center gap-2"><Mail size={14} /> ইমেইল</label>
-               <div className="w-full bg-slate-900/50 border border-slate-800 text-slate-400 px-4 py-3 rounded-xl cursor-not-allowed">{user.email}</div>
+            <div className="pt-6 border-t border-white/5">
+               <label className="block text-slate-500 text-[10px] font-black uppercase tracking-widest mb-3 flex items-center gap-2">
+                 <Mail size={12} className="text-cyan-500/50" /> রেজিস্টার্ড ইমেইল
+               </label>
+               <div className="w-full bg-black/60 border border-white/5 text-slate-400 px-5 py-4 rounded-2xl cursor-not-allowed text-sm font-medium">
+                 {user.email}
+               </div>
             </div>
 
-            <div className="pt-6">
-              <Button type="submit" fullWidth disabled={isSaving || isCompressing}>
+            <div className="pt-8">
+              <Button type="submit" fullWidth disabled={isSaving} className="py-5 shadow-2xl shadow-cyan-500/20 text-lg uppercase tracking-widest font-black">
                  {isSaving ? <Loader2 className="animate-spin mx-auto" /> : "তথ্য আপডেট করুন"}
               </Button>
             </div>
          </form>
        </Card>
 
-       <div className="flex justify-center pt-4">
-         <button onClick={onLogout} className="flex items-center gap-2 text-red-400 hover:text-red-300 font-medium px-6 py-3 rounded-xl hover:bg-red-500/10 transition-colors border border-transparent hover:border-red-500/20">
-           <LogOut size={20} /><span>লগ আউট</span>
+       <div className="flex justify-center pt-8">
+         <button onClick={onLogout} className="flex items-center gap-3 text-red-500/60 hover:text-red-400 font-black text-xs uppercase tracking-[0.3em] px-10 py-4 rounded-2xl border border-red-500/10 hover:bg-red-500/5 transition-all active:scale-95">
+           <LogOut size={18} /><span>লগ আউট</span>
          </button>
        </div>
     </div>

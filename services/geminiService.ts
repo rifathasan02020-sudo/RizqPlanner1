@@ -12,8 +12,8 @@ export const getFinancialAdvice = async (
     }
 
     const ai = new GoogleGenAI({ apiKey });
-    // Using gemini-flash-lite-latest for the fastest possible response
-    const model = 'gemini-flash-lite-latest';
+    // Using the latest gemini-3-flash-preview for maximum speed and intelligence
+    const model = 'gemini-3-flash-preview';
     
     const prompt = `
       You are an expert financial advisor named "Rizq Advisor". 
@@ -34,6 +34,10 @@ export const getFinancialAdvice = async (
     const response = await ai.models.generateContent({
       model: model,
       contents: prompt,
+      config: {
+        temperature: 0.7,
+        topP: 0.95,
+      }
     });
 
     return response.text || "দুঃখিত, আমি উত্তরটি তৈরি করতে পারিনি।";
