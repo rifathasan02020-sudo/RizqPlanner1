@@ -1,11 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Fallback values: অ্যাপ যাতে ক্র্যাশ না করে তার জন্য সরাসরি ভ্যালু দেওয়া হলো
-// প্রোডাকশনে এনভায়রনমেন্ট ভেরিয়েবল সেট করলে সেটিই প্রাধান্য পাবে
-const DEFAULT_URL = 'https://zmujgryfdzwuhglutxie.supabase.co';
-const DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptdWpncnlmZHp3dWhnbHV0eGllIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwOTU1NjgsImV4cCI6MjA4NjY3MTU2OH0.xRI0OiSX_--EBMJr6c-tIniRg2BxNCjjFWDTjHmLWNw';
+// আপনার নতুন Supabase প্রজেক্টের তথ্য
+const DEFAULT_URL = 'https://kfclwauqoxgumcfzmsgp.supabase.co';
+const DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmY2x3YXVxb3hndW1jZnptc2dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyNTA2MzMsImV4cCI6MjA4NjgyNjYzM30.qsCNpkCV7mLlPq4Fyl8vvZ9sbkbKLikt86TCXQGBpvI';
 
-// Safe getter for environment variables
 const getEnv = (key: string) => {
   try {
     // @ts-ignore

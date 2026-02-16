@@ -1,8 +1,9 @@
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  password?: string; // In a real app, never store plain text
+  password?: string;
   avatarUrl: string;
 }
 
@@ -39,4 +40,4 @@ export interface AuthState {
   currentUser: User | null;
 }
 
-export type ViewType = 'dashboard' | 'notes' | 'transactions' | 'savings' | 'advisor' | 'calculator' | 'language-exchange' | 'settings';
+export type ViewType = 'dashboard' | 'notes' | 'transactions' | 'savings' | 'advisor' | 'calculator' | 'language-exchange' | 'settings' | 'admin';

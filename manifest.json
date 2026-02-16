@@ -1,0 +1,30 @@
+
+{
+  "name": "RizqPlanner",
+  "short_name": "RizqPlanner",
+  "description": "Premium personal finance manager with AI advice.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [
+    {
+      "src": "https://i.ibb.co.com/d0jdNMf6/OIG2-n-WMa5us-XNj1-Wh-8-P3-Y.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://i.ibb.co.com/d0jdNMf6/OIG2-n-WMa5us-XNj1-Wh-8-P3-Y.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ibb.co.com/d0jdNMf6/OIG2-n-WMa5us-XNj1-Wh-8-P3-Y.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

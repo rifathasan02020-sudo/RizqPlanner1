@@ -4,34 +4,12 @@ export const getFinancialAdvice = async (
   query: string,
   financialContext: string
 ): Promise<string> => {
-  // 1. Try process.env (injected via vite define)
-  let apiKey = process.env.API_KEY;
-
-  // 2. Fallback: Try standard Vite env vars (import.meta.env)
-  // This handles cases where Vercel exposes VITE_API_KEY directly
-  if (!apiKey) {
-    try {
-      // @ts-ignore
-      if (typeof import.meta !== 'undefined' && import.meta.env) {
-        // @ts-ignore
-        apiKey = import.meta.env.VITE_API_KEY || import.meta.env.API_KEY;
-      }
-    } catch (e) {
-      console.warn("Error accessing import.meta.env", e);
-    }
-  }
-
-  if (!apiKey) {
-    return "দুঃখিত, এআই পরিষেবা ব্যবহারের জন্য API Key পাওয়া যায়নি। অনুগ্রহ করে Vercel এর Settings > Environment Variables এ 'VITE_API_KEY' নামে আপনার Gemini API Key টি সেভ করুন এবং রি-ডিপ্লয় (Redeploy) করুন।";
-  }
+  // Fix: Initialize with process.env.API_KEY directly using a named parameter as per @google/genai guidelines
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
-    // Initialize client ONLY when needed using the retrieved key
-    const ai = new GoogleGenAI({ apiKey });
-    
-    // Switch to 'gemini-flash-lite-latest' for maximum speed
-    // This model is optimized for low latency and quick responses
-    const model = 'gemini-flash-lite-latest';
+    // Fix: Use 'gemini-3-flash-preview' for basic text tasks and summarize reasoning
+    const model = 'gemini-3-flash-preview';
     
     const prompt = `
       You are an expert financial advisor named "Rizq Advisor". 
@@ -50,11 +28,13 @@ export const getFinancialAdvice = async (
       User Question: ${query}
     `;
 
+    // Fix: Always use ai.models.generateContent with both model name and prompt
     const response = await ai.models.generateContent({
       model: model,
       contents: prompt,
     });
 
+    // Fix: Access the .text property directly instead of calling it as a method
     return response.text || "দুঃখিত, আমি উত্তরটি তৈরি করতে পারিনি।";
   } catch (error) {
     console.error("Gemini API Error:", error);
