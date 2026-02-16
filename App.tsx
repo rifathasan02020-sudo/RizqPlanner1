@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { User, Transaction, Note, SavingsEntry, ViewType } from './services/types';
 import Landing from './components/Landing';
 import Sidebar from './components/Sidebar';
@@ -21,12 +21,20 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   
-  // Transactions, Notes and Savings data states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [savings, setSavings] = useState<SavingsEntry[]>([]);
 
-  // Fetches all user related data
+  // Function to clear all states on logout
+  const clearAppState = useCallback(() => {
+    setUser(null);
+    setTransactions([]);
+    setNotes([]);
+    setSavings([]);
+    setCurrentView('dashboard');
+    setIsSidebarOpen(false);
+  }, []);
+
   const fetchUserData = async (userId: string) => {
     try {
       const [profileRes, txnsRes, notesRes, savingsRes] = await Promise.all([
@@ -47,60 +55,54 @@ const App: React.FC = () => {
     }
   };
 
-  // Initial session check
   useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-           const profile = await fetchUserData(session.user.id);
-           setUser({
-              id: session.user.id,
-              email: session.user.email!,
-              name: profile?.name || session.user.user_metadata?.name || 'User',
-              avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
-              password: profile?.saved_password || '' 
-           });
-        }
-      } catch (e) {
-        console.error("Auth session check error", e);
+    // Check initial session
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        const profile = await fetchUserData(session.user.id);
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: profile?.name || session.user.user_metadata?.name || 'User',
+          avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
+          password: profile?.saved_password || ''
+        });
       }
     };
+    checkInitialSession();
 
-    checkSession();
-
-    // Listen for auth changes
+    // Global Auth Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-          setUser(null);
-          setTransactions([]);
-          setNotes([]);
-          setSavings([]);
-          setCurrentView('dashboard');
-        } else if (session) {
-          const profile = await fetchUserData(session.user.id);
-          setUser({
-            id: session.user.id,
-            email: session.user.email!,
-            name: profile?.name || session.user.user_metadata?.name || 'User',
-            avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
-            password: profile?.saved_password || ''
-          });
-        }
+      console.log("Auth Event:", event);
+      if (event === 'SIGNED_OUT') {
+        clearAppState();
+      } else if (session?.user) {
+        const profile = await fetchUserData(session.user.id);
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: profile?.name || session.user.user_metadata?.name || 'User',
+          avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
+          password: profile?.saved_password || ''
+        });
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [clearAppState]);
 
   const handleLogin = (loggedInUser: User) => setUser(loggedInUser);
   
   const handleLogout = async () => {
     try {
+      // Clear local state immediately for instant feedback
+      clearAppState();
+      // Then sign out from Supabase
       await supabase.auth.signOut();
-      setUser(null);
     } catch (e) {
-      console.error("Logout failed", e);
-      setUser(null);
+      console.error("Logout error", e);
+      clearAppState(); // Ensure UI is cleared even if network fails
     }
   };
 
@@ -168,7 +170,8 @@ const App: React.FC = () => {
     await supabase.from('savings').delete().eq('id', id);
   };
 
-  // If no user, show Landing. No full-screen spinner.
+  // If no user is logged in, show the Landing page. 
+  // There is no global loading state to prevent "ঘুরতে থাকা" spinning.
   if (!user) return <Landing onLogin={handleLogin} />;
 
   const isAdmin = user.email === 'admin@rizq.com' || user.email.includes('rifat');

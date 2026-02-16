@@ -36,7 +36,6 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
     }
   }, [user]);
 
-  // Fast background compression
   const compressImage = (base64Str: string): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image();
@@ -75,10 +74,7 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
       reader.onloadend = async () => {
         if (reader.result) {
           const rawBase64 = reader.result as string;
-          // INSTANT PREVIEW: Update state immediately
           setAvatar(rawBase64);
-          
-          // Silently compress in background
           try {
             const compressed = await compressImage(rawBase64);
             setAvatar(compressed);
@@ -193,7 +189,13 @@ const Settings: React.FC<SettingsProps> = ({ user, onUpdateUser, onLogout }) => 
        </Card>
 
        <div className="flex justify-center pt-8">
-         <button onClick={onLogout} className="flex items-center gap-3 text-red-500/60 hover:text-red-400 font-black text-xs uppercase tracking-[0.3em] px-10 py-4 rounded-2xl border border-red-500/10 hover:bg-red-500/5 transition-all active:scale-95">
+         <button 
+          onClick={(e) => {
+            e.preventDefault();
+            onLogout();
+          }} 
+          className="flex items-center gap-3 text-red-500/60 hover:text-red-400 font-black text-xs uppercase tracking-[0.3em] px-10 py-4 rounded-2xl border border-red-500/10 hover:bg-red-500/5 transition-all active:scale-95"
+         >
            <LogOut size={18} /><span>লগ আউট</span>
          </button>
        </div>
