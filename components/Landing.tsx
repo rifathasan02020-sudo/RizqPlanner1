@@ -41,6 +41,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoginError('');
     setLoading(true);
 
@@ -68,7 +69,10 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         });
       }
     } catch (err: any) {
-      setLoginError(err.message || String(err) || 'ইমেইল বা পাসওয়ার্ড ভুল।');
+      console.error("Login error", err);
+      // Clean error display to avoid [object object]
+      const errorMessage = err.error_description || err.message || String(err);
+      setLoginError(errorMessage.includes('Invalid login credentials') ? 'ইমেইল বা পাসওয়ার্ড ভুল।' : errorMessage);
     } finally {
       setLoading(false);
     }
@@ -76,10 +80,11 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setSignupError('');
     setLoading(true);
 
-    if (!name || !email || !password) {
+    if (!name.trim() || !email.trim() || !password.trim()) {
       setSignupError('সব তথ্য প্রদান করুন।');
       setLoading(false);
       return;
@@ -91,7 +96,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         password: password,
         options: {
           data: {
-            name: name,
+            name: name.trim(),
             avatar_url: getAvatar(),
             saved_password: password
           }
@@ -106,6 +111,7 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
         setName(''); setEmail(''); setPassword('');
       }
     } catch (err: any) {
+      console.error("Signup error", err);
       setSignupError(err.message || String(err) || 'অ্যাকাউন্ট তৈরি করা যায়নি।');
     } finally {
       setLoading(false);
@@ -132,26 +138,28 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
               </div>
 
               <div className="flex mb-8 border-b border-white/10">
-                <button onClick={() => setIsLogin(true)} className={`flex-1 pb-4 text-center ${isLogin ? 'text-cyan-400 border-b-2 border-cyan-400 font-semibold' : 'text-slate-500'}`}>লগ ইন</button>
-                <button onClick={() => setIsLogin(false)} className={`flex-1 pb-4 text-center ${!isLogin ? 'text-cyan-400 border-b-2 border-cyan-400 font-semibold' : 'text-slate-500'}`}>সাইন আপ</button>
+                <button onClick={() => { setIsLogin(true); setLoginError(''); setSignupError(''); }} className={`flex-1 pb-4 text-center ${isLogin ? 'text-cyan-400 border-b-2 border-cyan-400 font-semibold' : 'text-slate-500'}`}>লগ ইন</button>
+                <button onClick={() => { setIsLogin(false); setLoginError(''); setSignupError(''); }} className={`flex-1 pb-4 text-center ${!isLogin ? 'text-cyan-400 border-b-2 border-cyan-400 font-semibold' : 'text-slate-500'}`}>সাইন আপ</button>
               </div>
 
               {isLogin ? (
-                <form onSubmit={handleLogin} className="space-y-5" autoComplete="off">
+                <form onSubmit={handleLogin} className="space-y-5" autoComplete="on">
                   <Input 
                     label="ইমেইল" 
                     placeholder="example@mail.com" 
                     value={loginEmail} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginEmail(e.target.value)} 
+                    onChange={(e) => setLoginEmail(e.target.value)} 
                     type="email" 
+                    autoComplete="username"
                     required
                   />
                   <Input 
                     label="পাসওয়ার্ড" 
                     placeholder="******" 
                     value={loginPass} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoginPass(e.target.value)} 
+                    onChange={(e) => setLoginPass(e.target.value)} 
                     type="password" 
+                    autoComplete="current-password"
                     required
                   />
                   {loginError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2"><AlertCircle size={16} className="shrink-0 mt-0.5" /><span>{loginError}</span></div>}
@@ -161,9 +169,29 @@ const Landing: React.FC<LandingProps> = ({ onLogin }) => {
                 </form>
               ) : (
                 <form onSubmit={handleSignup} className="space-y-4" autoComplete="off">
-                  <Input label="নাম" placeholder="আপনার পূর্ণ নাম" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)} />
-                  <Input label="ইমেইল" placeholder="example@mail.com" value={email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} type="email" />
-                  <Input label="পাসওয়ার্ড" placeholder="কমপক্ষে ৬ অক্ষর" value={password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} type="password" autoComplete="new-password" />
+                  <Input 
+                    label="নাম" 
+                    placeholder="আপনার পূর্ণ নাম" 
+                    value={name} 
+                    onChange={(e) => setName(e.target.value)} 
+                    autoComplete="name"
+                  />
+                  <Input 
+                    label="ইমেইল" 
+                    placeholder="example@mail.com" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value)} 
+                    type="email" 
+                    autoComplete="email"
+                  />
+                  <Input 
+                    label="পাসওয়ার্ড" 
+                    placeholder="কমপক্ষে ৬ অক্ষর" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    type="password" 
+                    autoComplete="new-password"
+                  />
                   {signupError && <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2"><AlertCircle size={16} className="shrink-0 mt-0.5" /><span>{signupError}</span></div>}
                   {signupSuccess && <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">{signupSuccess}</div>}
                   <Button fullWidth type="submit" disabled={loading} className="py-4">

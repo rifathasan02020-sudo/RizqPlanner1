@@ -21,13 +21,12 @@ const App: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   
-  // Set loading to false by default so nothing is "spinning" at the start
-  const [loading, setLoading] = useState(false);
-  
+  // Transactions, Notes and Savings data states
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [savings, setSavings] = useState<SavingsEntry[]>([]);
 
+  // Fetches all user related data
   const fetchUserData = async (userId: string) => {
     try {
       const [profileRes, txnsRes, notesRes, savingsRes] = await Promise.all([
@@ -48,23 +47,29 @@ const App: React.FC = () => {
     }
   };
 
+  // Initial session check
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-         const profile = await fetchUserData(session.user.id);
-         setUser({
-            id: session.user.id,
-            email: session.user.email!,
-            name: profile?.name || session.user.user_metadata?.name || 'User',
-            avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
-            password: profile?.saved_password || '' 
-         });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+           const profile = await fetchUserData(session.user.id);
+           setUser({
+              id: session.user.id,
+              email: session.user.email!,
+              name: profile?.name || session.user.user_metadata?.name || 'User',
+              avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
+              password: profile?.saved_password || '' 
+           });
+        }
+      } catch (e) {
+        console.error("Auth session check error", e);
       }
     };
 
     checkSession();
 
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_OUT' || !session) {
           setUser(null);
@@ -90,8 +95,13 @@ const App: React.FC = () => {
   const handleLogin = (loggedInUser: User) => setUser(loggedInUser);
   
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (e) {
+      console.error("Logout failed", e);
+      setUser(null);
+    }
   };
 
   const handleUpdateUser = async (updatedUser: User) => {
@@ -158,6 +168,7 @@ const App: React.FC = () => {
     await supabase.from('savings').delete().eq('id', id);
   };
 
+  // If no user, show Landing. No full-screen spinner.
   if (!user) return <Landing onLogin={handleLogin} />;
 
   const isAdmin = user.email === 'admin@rizq.com' || user.email.includes('rifat');
