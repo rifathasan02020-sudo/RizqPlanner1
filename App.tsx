@@ -12,7 +12,7 @@ import Calculator from './components/Calculator';
 import LanguageExchange from './components/LanguageExchange';
 import Settings from './components/Settings';
 import AdminPanel from './components/AdminPanel';
-import { AlignRight } from 'lucide-react';
+import { AlignRight, Loader2 } from 'lucide-react';
 import { APP_NAME_PREFIX, APP_NAME_SUFFIX, getAvatar } from './constants';
 import { supabase } from './services/supabaseClient';
 
@@ -46,18 +46,24 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-         const profile = await fetchUserData(session.user.id);
-         setUser({
-            id: session.user.id,
-            email: session.user.email!,
-            name: profile?.name || session.user.user_metadata?.name || 'User',
-            avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
-            password: profile?.saved_password || '' 
-         });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+           const profile = await fetchUserData(session.user.id);
+           setUser({
+              id: session.user.id,
+              email: session.user.email!,
+              name: profile?.name || session.user.user_metadata?.name || 'User',
+              avatarUrl: profile?.avatar_url || session.user.user_metadata?.avatar_url || getAvatar(),
+              password: profile?.saved_password || '' 
+           });
+        }
+      } catch (e) {
+        console.error("Auth check failed:", e);
+      } finally {
+        // Delay to ensure the screen doesn't flicker too fast
+        setTimeout(() => setLoading(false), 500);
       }
-      setLoading(false);
     };
 
     checkSession();
@@ -68,7 +74,7 @@ const App: React.FC = () => {
           setTransactions([]);
           setNotes([]);
           setSavings([]);
-        } else if (!user) {
+        } else if (session) {
           const profile = await fetchUserData(session.user.id);
           setUser({
             id: session.user.id,
@@ -104,8 +110,9 @@ const App: React.FC = () => {
   };
 
   const handleAddTransaction = async (newTxn: Transaction) => {
-    const { data, error } = await supabase.from('transactions').insert([{
-        user_id: user?.id,
+    if (!user) return;
+    const { data } = await supabase.from('transactions').insert([{
+        user_id: user.id,
         amount: newTxn.amount,
         type: newTxn.type,
         category: newTxn.category,
@@ -152,7 +159,12 @@ const App: React.FC = () => {
     await supabase.from('savings').delete().eq('id', id);
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center text-white">লোড হচ্ছে...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <Loader2 className="animate-spin text-cyan-500 w-10 h-10 opacity-50" />
+    </div>
+  );
+  
   if (!user) return <Landing onLogin={handleLogin} />;
 
   const isAdmin = user.email === 'admin@rizq.com' || user.email.includes('rifat');

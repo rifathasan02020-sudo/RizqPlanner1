@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Card from './Card';
 import Button from './Button';
@@ -29,7 +30,6 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
 
-  // Helper to remove markdown symbols like ** and ##
   const cleanResponse = (text: string) => {
     return text.replace(/[*#]/g, '');
   };
@@ -39,21 +39,27 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
     setResponse(null);
     setActiveQuestion(question);
 
-    // Prepare context
-    const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-    const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
-    const balance = totalIncome - totalExpense;
-    
-    const context = `
-      Total Income: ${totalIncome}
-      Total Expense: ${totalExpense}
-      Current Balance: ${balance}
-      Recent Transactions count: ${transactions.length}
-    `;
+    try {
+      // Prepare context
+      const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
+      const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
+      const balance = totalIncome - totalExpense;
+      
+      const context = `
+        Total Income: ${totalIncome}
+        Total Expense: ${totalExpense}
+        Current Balance: ${balance}
+        Recent Transactions count: ${transactions.length}
+      `;
 
-    const rawResponse = await getFinancialAdvice(question, context);
-    setResponse(cleanResponse(rawResponse));
-    setIsLoading(false);
+      const rawResponse = await getFinancialAdvice(question, context);
+      setResponse(cleanResponse(rawResponse));
+    } catch (err) {
+      console.error(err);
+      setResponse("একটি ত্রুটি ঘটেছে। দয়া করে ইন্টারনেট কানেকশন চেক করে আবার চেষ্টা করুন।");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGeneralAdvice = () => {
@@ -67,7 +73,6 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
           <p className="text-slate-400">আপনার আর্থিক প্রশ্নের স্মার্ট সমাধান</p>
        </div>
 
-       {/* Main Action Area */}
        <div className="grid grid-cols-1 gap-6">
          {!response && !isLoading && (
             <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-white/10 flex flex-col items-center justify-center py-12 text-center">
@@ -75,7 +80,7 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
                  <Bot size={48} className="text-cyan-400" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">স্বাগতম রিজক অ্যাডভাইজরে</h3>
-              <p className="text-slate-400 max-w-md mb-6">
+              <p className="text-slate-400 max-w-md mb-6 px-4">
                 নিচের প্রশ্নগুলো থেকে বাছাই করুন অথবা সাধারণ পরামর্শের জন্য নিচের বাটনে ক্লিক করুন।
               </p>
               <Button onClick={handleGeneralAdvice} className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500">
@@ -87,24 +92,22 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
             </Card>
          )}
 
-         {/* Loading State */}
          {isLoading && (
-            <Card className="flex flex-col items-center justify-center py-16 text-center">
+            <Card className="flex flex-col items-center justify-center py-16 text-center border-cyan-500/20 bg-slate-900/40">
                <Loader2 size={48} className="animate-spin text-cyan-400 mb-4" />
                <p className="text-slate-300 font-medium text-lg">আপনার তথ্যের ভিত্তিতে সেরা পরামর্শটি তৈরি করা হচ্ছে...</p>
-               <p className="text-slate-500 text-sm mt-2">অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন</p>
+               <p className="text-slate-500 text-sm mt-2">অল্প কিছুক্ষণ অপেক্ষা করুন</p>
             </Card>
          )}
 
-         {/* Response Display */}
          {response && !isLoading && (
-           <Card className="border-cyan-500/30 bg-slate-900/60 relative overflow-hidden">
+           <Card className="border-cyan-500/30 bg-slate-900/60 relative overflow-hidden animate-fade-in">
               <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-blue-600"></div>
               <div className="mb-4 flex items-center gap-3">
                  <div className="p-2 bg-cyan-500/20 rounded-lg">
                     <Sparkles size={24} className="text-cyan-400" />
                  </div>
-                 <h3 className="text-xl font-bold text-white">পরামর্শ</h3>
+                 <h3 className="text-xl font-bold text-white">রিজক অ্যাডভাইস</h3>
               </div>
               
               <div className="text-slate-200 text-lg leading-relaxed whitespace-pre-line font-light p-2">
@@ -120,9 +123,8 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
          )}
        </div>
 
-       {/* Common Questions Grid */}
        {!isLoading && !response && (
-         <div>
+         <div className="animate-fade-in">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                <MessageSquare size={20} className="text-slate-400" />
                সাধারণ জিজ্ঞাসা
@@ -132,7 +134,7 @@ const Advisor: React.FC<AdvisorProps> = ({ transactions }) => {
                 <button
                   key={idx}
                   onClick={() => handleAsk(q)}
-                  className="p-4 rounded-xl bg-slate-800/40 border border-white/5 hover:bg-slate-800 hover:border-cyan-500/30 text-left transition-all duration-300 group"
+                  className="p-4 rounded-xl bg-slate-800/40 border border-white/5 hover:bg-slate-800 hover:border-cyan-500/30 text-left transition-all duration-300 group active:scale-95"
                 >
                   <span className="text-slate-300 group-hover:text-cyan-300 text-sm font-medium">{q}</span>
                 </button>
